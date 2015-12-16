@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+  <link type="text/css" rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+
+  </head>
+	<body>
+		<div class="container">
+			<h3>Selct </h3>
+			<ul class="nav nav-pills">
+				<li class=
+				{% if menu_name == "see_your" %}
+					active
+				{% endif %}
+				><a href="?menu_name=see_your">See Your Reservations</a></li>
+				<li class=
+				{% if menu_name == "see_all" %}
+					active
+				{% endif %}				
+				><a href="?menu_name=see_all">See All Resources</a></li>
+				<li class=
+				{% if menu_name == "see_resource" %}
+					active
+				{% endif %}
+
+				><a href="?menu_name=see_resource">See Resources Owned by You</a></li>
+				<li class=
+				{% if menu_name == "create" %}
+					active
+				{% endif %}
+
+				><a href="?menu_name=create">{{url_createResource}}</a></li>
+			</ul>
+
+		<div>
+			Hello
+			{% if user %}
+			{{user.nickname()}}
+			{% endif %}
+		</div>
+		{{menu_name}}
+		
+		{% if menu_name == "see_your" %}
+			active
+			
+			
+		{% endif %}
+		{% if menu_name == "see_all" %}
+			active
+			<div class="divTable">
+				 <div class="headRow">
+					<div class="divCell" align="center">Resource Name</div>
+					<div  class="divCell">Resource Owner</div>
+					<div  class="divCell">Start Time</div>
+					<div  class="divCell">End Time</div>
+					
+				 </div>
+
+				{% for resource in resources %}
+					<div class="divRow">
+								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
+							<div class="divCell">
+									<input type="hidden" name="resource_name" value="{{resource.resourceName}}">
+									<input type="hidden" name="resource_author_id" value="{{resource.author.identity}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
+								</form>
+							</div>
+						<div class="divCell">{{resource.author.email}}</div>
+						<div class="divCell">{{resource.startTime}}</div>
+						<div class="divCell">{{resource.endTime}}</div>
+					</div>
+					<hr>
+				{% endfor %}
+
+			</div>
+
+		{% endif %}
+		{% if menu_name == "see_resource" %}
+			active
+			<div class="divTable">
+				 <div class="headRow">
+					<div class="divCell" align="center">Resource Name</div>
+					<div  class="divCell">Resource Owner</div>
+					<div  class="divCell">Start Time</div>
+					<div  class="divCell">End Time</div>
+					
+				 </div>
+
+				{% for resource in resources %}
+					{% if user and user.user_id() == resource.author.identity %}
+						<div class="divRow">
+							<div class="divCell">
+								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
+									<input type="hidden" name="resource_name" value="{{resource.resourceName}}">
+									<input type="hidden" name="resource_author_id" value="{{resource.author.identity}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
+								</form>
+							</div>
+							<div class="divCell">{{resource.author.email}}</div>
+							<div class="divCell">{{resource.startTime}}</div>
+							<div class="divCell">{{resource.endTime}}</div>
+						</div>
+						<hr>
+					
+					{% endif %}
+
+					
+				{% endfor %}
+
+			</div>
+
+			
+		{% endif %}
+		{% if menu_name == "create" %}
+			<div>
+				<h4>Create New Resource</h4>
+				
+				<form action="/sign" method="post">
+					<div>Resource Name:
+						<input value="{{ resource_name }}" name="resource_name">
+					</div>
+					<br>
+					<div>
+					Select Date:
+					<select name="Month">
+					{% for num in range(1,13)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+					<select name="Day">
+					{% for num in range(1,32)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+					<select name="Year">
+					{% for num in range(2015,2100)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+
+					</div>
+					<br>
+					<div>
+					<span>
+					Select Start Time:
+					<select name="startHours">
+					{% for num in range(1,13)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+					</span>
+					<span>
+					<select name="startMins">
+					{% for num in range(0,60)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+					</span>
+					<span>
+					<select name="startMeridian">
+					  <option value="AM">AM</option>					
+					  <option value="PM">PM</option>					
+					</select>					
+					</span>
+				
+					<span>
+					Select End Time:
+					<select name="endHours">
+					{% for num in range(1,13)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+					</span>
+					<span>
+					<select name="endMins">
+					{% for num in range(0,60)%}
+					  <option value="{{ num }}">{{num}}</option>					
+					{% endfor %}
+					</select>
+					</span>
+					<span>
+					<select name="endMeridian">
+					  <option value="AM">AM</option>					
+					  <option value="PM">PM</option>					
+					</select>					
+					</span>
+					</div>
+					<br>
+					<div>
+					Select Tags:
+					<select name="setTags">
+					  <option value="">fhdsk</option>					
+					</select>
+					</div>
+					<br>
+					<input type="submit" value="Create">
+					
+				</form>			
+			</div>
+		{% endif %}
+
+
+		
+		<hr>
+		
+		<a href="{{url|safe}}">{{ url_linktext }}</a>
+
+
+			
+		</div>		
+	</body>
+</html>
+{% endautoescape %}

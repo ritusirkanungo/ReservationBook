@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+  <link type="text/css" rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+
+  </head>
+	<body>
+		<div class="container">
+			<h3>Selct </h3>
+			<ul class="nav nav-pills">
+				<li class=
+				{% if menu_name == "show_reservations" %}
+					active
+				{% endif %}
+				><a href="?menu_name=show_reservations&reservationbook_name={{reservationbook_name}}">Show Upcoming/Current Reservations</a></li>
+				<li class=
+				{% if menu_name == "add_new_reservation" %}
+					active
+				{% endif %}				
+				><a href="?menu_name=add_new_reservation&reservationbook_name={{reservationbook_name}}">Add New Reservation</a></li>
+				{% if user and user.user_id() == resource[0].author.identity %}
+					<li class=
+					{% if menu_name == "edit_resource" %}
+						active
+					{% endif %}
+
+					><a href="?menu_name=edit_resource&reservationbook_name={{reservationbook_name}}">Edit Resource</a></li>
+
+
+				{% endif %}
+				
+			</ul>
+
+		<div>
+			Hello
+			{% if user %}
+			{{user.nickname()}}
+			{% endif %}
+		</div>
+		{{menu_name}}
+		{{resource}}
+		{% for resource in resource%}
+			{{resource.resourceName}}
+			{{resource.endTime}}
+		{% endfor %}
+		
+		{% if menu_name == "show_reservations" %}
+			active
+			
+			
+		{% endif %}
+		{% if menu_name == "add_new_reservation" %}
+			active
+
+		{% endif %}
+		{% if menu_name == "edit_resource" %}
+			active
+
+			
+		{% endif %}
+
+
+		
+		<hr>
+		
+		<a href="{{url|safe}}">{{ url_linktext }}</a>
+
+
+			
+		</div>		
+	</body>
+</html>
+{% endautoescape %}
