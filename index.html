@@ -4,6 +4,83 @@
 <head>
   <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
   <link type="text/css" rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+	<script>
+		function checkValidations() {
+		var resourceName = document.getElementById("resourceName").value;
+		console.log(resourceName);
+		
+		
+		
+		var d = new Date();
+		var getMonth = document.getElementById("Month").value;
+		var getDay = document.getElementById("Day").value;
+		var getYear = document.getElementById("Year").value;
+		var getsHours = document.getElementById("startHours").value;
+		console.log(getsHours);
+		var getsMins = document.getElementById("startMins").value;
+		
+		var sMeridian = document.getElementById("startMeridian").value;
+		var intsHours = parseInt(getsHours);
+		
+		if(sMeridian == 'PM'){
+		console.log(intsHours);
+		intsHours = intsHours + 12;
+		getsHours = intsHours;
+		}
+		
+		if(getsHours.length == 1){
+		getsHours = '0'+getsHours;
+		}
+		if(getsMins.length == 1){
+		getsMins = '0'+getsMins;
+		}
+		
+		var geteHours = document.getElementById("endHours").value;
+		var eMeridian = document.getElementById("endMeridian").value;
+		var inteHours = parseInt(geteHours);
+		if(eMeridian == 'PM'){
+		inteHours = inteHours + 12;
+		geteHours = inteHours;
+		}
+		if(geteHours.length == 1){
+		geteHours = '0'+geteHours;
+		}
+
+		var geteMins = document.getElementById("endMins").value;
+		if(geteMins.length == 1){
+		geteMins = '0'+geteMins;
+		}
+		
+		var getStartDateString = getYear + '-' +getMonth +'-'+getDay+' '+getsHours+':'+getsMins+':00';
+		console.log("hello",getStartDateString);
+		var myStartDate = new Date(getStartDateString);
+
+		var getEndDateString = getYear + '-' +getMonth +'-'+getDay+' '+geteHours+':'+geteMins+':00';
+		var myEndDate = new Date(getEndDateString);
+		console.log(myStartDate);
+		console.log(myEndDate);
+
+		console.log(d);
+		if(myStartDate < d){
+		var message = "Date should be greater than current date";
+		console.log(message);
+		document.getElementById("displayError").innerHTML = message;
+		return false;
+		}else {
+			if(myEndDate < myStartDate){
+			var message = "End time should be greater than Start time";
+			console.log(message);
+		
+			document.getElementById("displayError").innerHTML = message;
+			return false;
+			}
+			else {		
+			return true;
+			}
+		}	
+		}
+	
+	</script>
 
   </head>
 	<body>
@@ -44,6 +121,38 @@
 		
 		{% if menu_name == "see_your" %}
 			active
+			<div class="divTable">
+				 <div class="headRow">
+					<div class="divCell" align="center">Reservation UUID</div>
+					<div  class="divCell">Resource Name</div>
+					<div  class="divCell">Resource UUID</div>
+					<div  class="divCell">Start Time</div>
+					<div  class="divCell">Duration</div>
+					
+				 </div>
+
+				{% for reservation in reservations %}
+					{% if user and user.user_id() == reservation.author.identity %}
+					<div class="divRow">
+						<div class="divCell">{{reservation.uuid}}</div>
+
+							<form id='myform{{reservation.resourceName}}' action="/reserveResource" method="get">
+							<div class="divCell">
+									<input type="hidden" name="resource_uuid" value="{{reservation.resourceUUID}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('myform{{reservation.resourceName}}').submit()">{{reservation.resourceName}}</a>
+								
+							</div>
+								</form>
+						<div class="divCell">{{reservation.resourceUUID}}</div>
+						<div class="divCell">{{reservation.startTime}}</div>
+						<div class="divCell">{{reservation.duration}}</div>
+						
+					</div>
+					<hr>
+					{% endif %}
+				{% endfor %}
+
+			</div>
 			
 			
 		{% endif %}
@@ -62,11 +171,11 @@
 					<div class="divRow">
 								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
 							<div class="divCell">
-									<input type="hidden" name="resource_name" value="{{resource.resourceName}}">
-									<input type="hidden" name="resource_author_id" value="{{resource.author.identity}}">
+									<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
 									<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
-								</form>
+								
 							</div>
+								</form>
 						<div class="divCell">{{resource.author.email}}</div>
 						<div class="divCell">{{resource.startTime}}</div>
 						<div class="divCell">{{resource.endTime}}</div>
@@ -93,14 +202,15 @@
 						<div class="divRow">
 							<div class="divCell">
 								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
-									<input type="hidden" name="resource_name" value="{{resource.resourceName}}">
-									<input type="hidden" name="resource_author_id" value="{{resource.author.identity}}">
+									<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
 									<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
-								</form>
+								
 							</div>
+								</form>
 							<div class="divCell">{{resource.author.email}}</div>
 							<div class="divCell">{{resource.startTime}}</div>
 							<div class="divCell">{{resource.endTime}}</div>
+							
 						</div>
 						<hr>
 					
@@ -116,25 +226,25 @@
 		{% if menu_name == "create" %}
 			<div>
 				<h4>Create New Resource</h4>
-				
-				<form action="/sign" method="post">
+				<span id="displayError"></span>
+				<form action="/sign" onSubmit= "return checkValidations()"method="post" id="createForm">
 					<div>Resource Name:
-						<input value="{{ resource_name }}" name="resource_name">
+						<input id="resourceName" value="{{ resource_name }}" name="resource_name" required/>
 					</div>
 					<br>
 					<div>
 					Select Date:
-					<select name="Month">
+					<select name="Month" id = "Month">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
-					<select name="Day">
+					<select name="Day" id = "Day">
 					{% for num in range(1,32)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
-					<select name="Year">
+					<select name="Year" id = "Year">
 					{% for num in range(2015,2100)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
@@ -145,21 +255,21 @@
 					<div>
 					<span>
 					Select Start Time:
-					<select name="startHours">
+					<select name="startHours" id = "startHours">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
 					<span>
-					<select name="startMins">
+					<select name="startMins" id = "startMins">
 					{% for num in range(0,60)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
 					<span>
-					<select name="startMeridian">
+					<select name="startMeridian" id = "startMeridian">
 					  <option value="AM">AM</option>					
 					  <option value="PM">PM</option>					
 					</select>					
@@ -167,21 +277,21 @@
 				
 					<span>
 					Select End Time:
-					<select name="endHours">
+					<select name="endHours" id="endHours">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
 					<span>
-					<select name="endMins">
+					<select name="endMins" id="endMins">
 					{% for num in range(0,60)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
 					<span>
-					<select name="endMeridian">
+					<select name="endMeridian" id="endMeridian">
 					  <option value="AM">AM</option>					
 					  <option value="PM">PM</option>					
 					</select>					
@@ -195,7 +305,7 @@
 					</select>
 					</div>
 					<br>
-					<input type="submit" value="Create">
+					<input type="submit" value="Submit">
 					
 				</form>			
 			</div>
@@ -211,5 +321,6 @@
 			
 		</div>		
 	</body>
+	
 </html>
 {% endautoescape %}
