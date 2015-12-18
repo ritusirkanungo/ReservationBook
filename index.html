@@ -87,28 +87,61 @@
 		<div class="container">
 			<h3>Selct </h3>
 			<ul class="nav nav-pills">
-				<li class=
-				{% if menu_name == "see_your" %}
-					active
+				{% if checkOwnerResources == 'false' %} 
+				
+					<li class=
+					{% if menu_name == "see_your" %}
+						active
+					{% endif %}
+					><a href="?menu_name=see_your&checkOwnerResources={{checkOwnerResources}}&getOwner={{getOwner}}">See Your Reservations</a></li>
 				{% endif %}
-				><a href="?menu_name=see_your">See Your Reservations</a></li>
-				<li class=
-				{% if menu_name == "see_all" %}
-					active
-				{% endif %}				
-				><a href="?menu_name=see_all">See All Resources</a></li>
-				<li class=
-				{% if menu_name == "see_resource" %}
-					active
-				{% endif %}
-
-				><a href="?menu_name=see_resource">See Resources Owned by You</a></li>
-				<li class=
-				{% if menu_name == "create" %}
-					active
+				{% if checkOwnerResources == 'true' %} 
+				
+					<li class=
+					{% if menu_name == "see_your" %}
+						active
+					{% endif %}
+					><a href="?menu_name=see_your&checkOwnerResources={{checkOwnerResources}}&getOwner={{getOwner}}">See Reservations of {{getOwner}}</a></li>
 				{% endif %}
 
-				><a href="?menu_name=create">{{url_createResource}}</a></li>
+				{% if checkOwnerResources == 'false' %} 
+					<li class=
+					{% if menu_name == "see_all" %}
+						active
+					{% endif %}				
+					><a href="?menu_name=see_all">See All Resources</a></li>
+
+				
+				
+				{% endif %}
+				{% if checkOwnerResources == 'false' %} 
+				
+					<li class=
+					{% if menu_name == "see_resource" %}
+						active
+					{% endif %}
+
+					><a href="?menu_name=see_resource&checkOwnerResources={{checkOwnerResources}}&getOwner={{getOwner}}">See Resources Owned by You</a></li>
+				{% endif %} 
+				{% if checkOwnerResources == 'true' %} 
+				
+					<li class=
+					{% if menu_name == "see_resource" %}
+						active
+					{% endif %}
+
+					><a href="?menu_name=see_resource&checkOwnerResources={{checkOwnerResources}}&getOwner={{getOwner}}">See Resources Owned by {{getOwner}}</a></li>
+				{% endif %} 
+				{% if checkOwnerResources == 'false' %} 
+				
+					<li class=
+					{% if menu_name == "create" %}
+						active
+					{% endif %}
+
+					><a href="?menu_name=create">{{url_createResource}}</a></li>
+				{% endif %}
+				<li><a href="/">Home</a></li>
 			</ul>
 
 		<div>
@@ -116,6 +149,8 @@
 			{% if user %}
 			{{user.nickname()}}
 			{% endif %}
+			
+			{{checkOwnerResources}}
 		</div>
 		{{menu_name}}
 		
@@ -132,25 +167,75 @@
 				 </div>
 
 				{% for reservation in reservations %}
-					{% if user and user.user_id() == reservation.author.identity %}
-					<div class="divRow">
-						<div class="divCell">{{reservation.uuid}}</div>
+					{{checkOwnerResources}}
+					{% if checkOwnerResources == "true" %} 
+						repeat {{getOwner}}
+						{% if getOwner != user.email() and getOwner == reservation.author.email %}
+							repeat2 
+							<div class="divRow" id = "rowdiv{{reservation.uuid}}">
+								<div class="divCell">{{reservation.uuid}}</div>
 
-							<form id='myform{{reservation.resourceName}}' action="/reserveResource" method="get">
-							<div class="divCell">
-									<input type="hidden" name="resource_uuid" value="{{reservation.resourceUUID}}">
-									<a href="javascript:void(0)" onclick="document.getElementById('myform{{reservation.resourceName}}').submit()">{{reservation.resourceName}}</a>
+									<form id='myform{{reservation.resourceName}}' action="/reserveResource" method="get">
+									<div class="divCell">
+											<input type="hidden" name="resource_uuid" value="{{reservation.resourceUUID}}">
+											<a href="javascript:void(0)" onclick="document.getElementById('myform{{reservation.resourceName}}').submit()">{{reservation.resourceName}}</a>
+										
+									</div>
+										</form>
+								<div class="divCell">{{reservation.resourceUUID}}</div>
+								<div class="divCell">{{reservation.startTime}}</div>
+								<div class="divCell">{{reservation.duration}}</div>
 								
 							</div>
-								</form>
-						<div class="divCell">{{reservation.resourceUUID}}</div>
-						<div class="divCell">{{reservation.startTime}}</div>
-						<div class="divCell">{{reservation.duration}}</div>
-						
-					</div>
-					<hr>
+							<hr>
+							
+							<script>
+							var d = new Date();
+							var str = "";
+								
+								var endTime = new Date("{{reservation.endTime}}");
+								if (endTime < d) {
+								document.getElementById("rowdiv{{reservation.uuid}}").style.display = "none";
+								}
+							</script>
+						{% endif %}
+
+					{% endif %}
+					{% if checkOwnerResources == 'false' %}
+						{% if user and user.user_id() == reservation.author.identity %}
+					
+							<div class="divRow" id = "rowdiv{{reservation.uuid}}">
+								<div class="divCell">{{reservation.uuid}}</div>
+
+									<form id='myform{{reservation.resourceName}}' action="/reserveResource" method="get">
+									<div class="divCell">
+											<input type="hidden" name="resource_uuid" value="{{reservation.resourceUUID}}">
+											<a href="javascript:void(0)" onclick="document.getElementById('myform{{reservation.resourceName}}').submit()">{{reservation.resourceName}}</a>
+										
+									</div>
+										</form>
+								<div class="divCell">{{reservation.resourceUUID}}</div>
+								<div class="divCell">{{reservation.startTime}}</div>
+								<div class="divCell">{{reservation.duration}}</div>
+								
+							</div>
+							<hr>
+							
+							<script>
+							var d = new Date();
+							var str = "";
+								
+								var endTime = new Date("{{reservation.endTime}}");
+								if (endTime < d) {
+								document.getElementById("rowdiv{{reservation.uuid}}").style.display = "none";
+								}
+							</script>
+						{% endif %}
+
+
 					{% endif %}
 				{% endfor %}
+				
 
 			</div>
 			
@@ -176,9 +261,13 @@
 								
 							</div>
 								</form>
-						<div class="divCell">{{resource.author.email}}</div>
+								
+						<div class="divCell">
+									<a href="/?getOwner={{resource.author.email}}">{{resource.author.email}}</a>
+						</div>
 						<div class="divCell">{{resource.startTime}}</div>
 						<div class="divCell">{{resource.endTime}}</div>
+						<div class="divCell">{{resource.date}}</div>
 					</div>
 					<hr>
 				{% endfor %}
@@ -198,8 +287,9 @@
 				 </div>
 
 				{% for resource in resources %}
-					{% if user and user.user_id() == resource.author.identity %}
-						<div class="divRow">
+					{% if checkOwnerResources == 'true' %} 
+						{% if getOwner != user.email() and getOwner == resource.author.email %}
+							<div class="divRow">
 							<div class="divCell">
 								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
 									<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
@@ -211,11 +301,29 @@
 							<div class="divCell">{{resource.startTime}}</div>
 							<div class="divCell">{{resource.endTime}}</div>
 							
-						</div>
-						<hr>
-					
+							</div>
+							<hr>
+						{% endif %}
 					{% endif %}
-
+					{% if checkOwnerResources == 'false' %}
+						{% if user and user.user_id() == resource.author.identity %}
+							<div class="divRow">
+								<div class="divCell">
+									<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
+										<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
+										<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
+									
+								</div>
+									</form>
+								<div class="divCell">{{resource.author.email}}</div>
+								<div class="divCell">{{resource.startTime}}</div>
+								<div class="divCell">{{resource.endTime}}</div>
+								
+							</div>
+							<hr>
+						
+						{% endif %}
+					{% endif %}
 					
 				{% endfor %}
 

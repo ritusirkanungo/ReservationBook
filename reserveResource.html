@@ -78,7 +78,55 @@
 			return true;
 			}
 		}	
+		};
+		
+		function checkReserveValidations() {
+		 var d = new Date();
+		 
+		 getStartHours = document.getElementById("rstartHours").value;
+		 getStartMins = document.getElementById("rstartMins").value;
+		 getStartMeridian = document.getElementById("rstartMeridian").value;
+		 intstartHours = parseInt(getStartHours);
+		
+		if(getStartMeridian == 'PM'){
+		console.log(intstartHours);
+		intstartHours = intstartHours + 12;
+		getStartHours = intstartHours;
 		}
+		var splitDate = "{{resource_date}}"	;	 
+		var splitDateArray = splitDate.split("/");
+
+		var newResourceDate = splitDateArray[0] +"-"+ splitDateArray[1]+"-"+splitDateArray[2];
+		console.log(newResourceDate);
+		console.log(getStartHours);
+		console.log(getStartMins);
+		console.log(getStartMeridian);
+		
+		var getDate = newResourceDate+' '+getStartHours+':'+getStartMins+':00';
+		console.log(getDate);
+		
+		var resourceStartDate = new Date(getDate);
+		 console.log(resourceStartDate);
+		 
+		 if(resourceStartDate < d) {
+			console.log("going back");
+			var message = "Start Time should be greater than current time";
+		 document.getElementById("durationError").innerHTML = message;
+			return false;
+		 }
+		 
+		 var endHours = document.getElementById("endHours").value;
+		 var endMins = document.getElementById("endMins").value;
+		 
+		 if (endHours == "0" && endMins == '0') {
+		 var message = "Duration should be greater than zero";
+		 document.getElementById("durationError").innerHTML = message;
+		 return false;
+		 } else {
+		 return true;
+		 }
+		
+		};
 	
 	</script>
   </head>
@@ -124,6 +172,51 @@
 		{{reservation}}
 		{% if menu_name == "show_reservations" %}
 			active
+			<div class="divTable">
+				 <div class="headRow">
+					<div class="divCell" align="center">Reservation UUID</div>
+					<div  class="divCell">Resource Name</div>
+					<div  class="divCell">Resource UUID</div>
+					<div  class="divCell">Start Time</div>
+					<div  class="divCell">Duration</div>
+					
+				 </div>
+
+				{% for reservation in reservations %}
+					{% if reservation.resourceUUID == resource.uuid %}
+					
+					<div class="divRow" id = "rowdiv{{reservation.uuid}}">
+						<div class="divCell">{{reservation.uuid}}</div>
+
+							<form id='myform{{reservation.resourceName}}' action="/reserveResource" method="get">
+							<div class="divCell">
+									<input type="hidden" name="resource_uuid" value="{{reservation.resourceUUID}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('myform{{reservation.resourceName}}').submit()">{{reservation.resourceName}}</a>
+								
+							</div>
+								</form>
+						<div class="divCell">{{reservation.resourceUUID}}</div>
+						<div class="divCell">{{reservation.startTime}}</div>
+						<div class="divCell">{{reservation.duration}}</div>
+						
+					</div>
+					<hr>
+					
+					<script>
+					var d = new Date();
+					var str = "";
+						
+						var endTime = new Date("{{reservation.endTime}}");
+						if (endTime < d) {
+						document.getElementById("rowdiv{{reservation.uuid}}").style.display = "none";
+						}
+					</script>
+					{% endif %}
+				{% endfor %}
+				
+
+			</div>
+
 			
 			
 		{% endif %}
@@ -131,6 +224,8 @@
 			active
 			<div>
 				<h4>Make A Reservation</h4>
+				<span id="durationError"></span>
+
 				{{flag}}
 				{% if flag == 'false' %}
 					Please enter the correct start Time and duration
@@ -140,16 +235,21 @@
 				Resource EndTime: {{resource.endTime}}
 				<br>
 				All Reservations
-				{% for reservation in reservations %}
-					{{reservation.resourceName}}
-					{{reservation.startTime}}
-					{{reservation.duration}}
-					{{reservation.endTime}}
-					<br>
-				{% endfor %}
-				
-				
-				<form action="/addReservation" method="post">
+				<span id = "endTimes"></span>
+
+				<script>
+				var d = new Date();
+				var str = "";
+					{% for reservation in reservations %}
+					var endTime = new Date("{{reservation.endTime}}");
+						if (endTime > d) {
+						str = str + "{{reservation.resourceName}}" +' '+ "{{reservation.startTime}}" +' '+ "{{reservation.endTime}}";
+						}
+					
+					{% endfor %}
+				document.getElementById("endTimes").innerHTML = str;
+				</script>
+				<form action="/addReservation" onSubmit="return checkReserveValidations()" method="post" id="addReserveForm">
 					<input type="hidden" name="resource_name" value="{{resource.resourceName}}">
 					<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
 					<input type="hidden" name="resource_startDate" value="{{resource_date}}">
@@ -165,21 +265,21 @@
 					<div>
 					<span>
 					Select Start Time:
-					<select name="startHours">
+					<select name="startHours" id = "rstartHours">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
 					<span>
-					<select name="startMins">
+					<select name="startMins" id = "rstartMins">
 					{% for num in range(0,60)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
 					<span>
-					<select name="startMeridian">
+					<select name="startMeridian" id = "rstartMeridian">
 					  <option value="AM">AM</option>					
 					  <option value="PM">PM</option>					
 					</select>					
@@ -187,14 +287,14 @@
 				
 					<span>
 					Select Duration:
-					<select name="endHours">
+					<select name="endHours" id="endHours">
 					{% for num in range(0,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
 					</select>
 					</span>
-					<span>
-					<select name="endMins">
+					<span>	
+					<select name="endMins" id="endMins">
 					{% for num in range(0,60)%}
 					  <option value="{{ num }}">{{num}}</option>					
 					{% endfor %}
@@ -215,7 +315,7 @@
 			<div>
 				<h4>Edit Current Resource</h4>
 				<span id="displayError"></span>
-				<form action="/sign" onSubmit= "return checkValidations()"method="post" id="createForm">
+				<form action="/sign" onSubmit= "return checkValidations()"method="post" id="editForm">
 					<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
 					<div>Resource Name:
 						<input id="resourceName" value="{{ resource.resourceName }}" name="resource_name" required/>

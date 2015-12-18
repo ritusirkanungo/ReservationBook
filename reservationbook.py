@@ -35,7 +35,7 @@ class Resource(ndb.Model):
 	startTime=ndb.DateTimeProperty(auto_now_add=False)
 	endTime=ndb.DateTimeProperty(auto_now_add=False)
 	author=ndb.StructuredProperty(Author)
-	date=ndb.DateTimeProperty(auto_now_add=True)
+	date=ndb.DateTimeProperty(auto_now_add=False)
 	
 class Reservation(ndb.Model):
 	author=ndb.StructuredProperty(Author)
@@ -60,6 +60,18 @@ class MainPage(webapp2.RequestHandler):
 		menu_name = 'see_your'
 		menu_name1 = self.request.get('menu_name')
 		
+		checkOwnerResources = 'false'
+		checkOwnerResources1 = self.request.get('checkOwnerResources') 
+		if checkOwnerResources1 != '' :
+			checkOwnerResources = checkOwnerResources1
+
+		getOwner = ''
+		
+		getOwner1 = self.request.get('getOwner')
+		if getOwner1 != '':
+			checkOwnerResources = 'true'
+			getOwner = getOwner1
+		
 		if menu_name1 != '':
 			menu_name=menu_name1
 			
@@ -78,6 +90,9 @@ class MainPage(webapp2.RequestHandler):
 				'url_linktext': url_linktext,
 				'url_createResource': url_createResource,
 				'menu_name': urllib.quote_plus(menu_name),
+				'getOwner': getOwner,
+				'checkOwnerResources': checkOwnerResources,
+
 			}
 			
 			
@@ -165,7 +180,7 @@ class ReserveResource(webapp2.RequestHandler):
 		reservations = reservation_query.fetch()
 		
 		user = users.get_current_user()
-		
+		currDateTime = datetime
 		template_values={
 			'user': user,
 			'resource':resource[0],	
@@ -173,6 +188,7 @@ class ReserveResource(webapp2.RequestHandler):
 			'resource_date': resource_date,
 			'reservations': reservations,
 			'flag': flag,
+			'currDateTime': 'currDateTime',
 		}
 		template = JINJA_ENVIRONMENT.get_template('reserveResource.html')
 		self.response.write(template.render(template_values))
@@ -191,6 +207,9 @@ class AddReservation(webapp2.RequestHandler):
 		resource_query = Resource.query(Resource.uuid == resource_uuid)
 		resource = resource_query.fetch()
 		resource = resource[0]
+		resource.date= datetime.now()
+		resource.put()
+		sleep(1)
 		
 		reservation_query = Reservation.query(Reservation.resourceUUID == resource_uuid)
 		reservations = reservation_query.fetch()
@@ -209,20 +228,24 @@ class AddReservation(webapp2.RequestHandler):
 		delta = timedelta(hours=endTime.hour,minutes=endTime.minute)		
 		endDateTime = startDateTime + delta
 		flag = 'true'
+		currentDate = datetime.now()
 		
 		if resource.startTime <= startDateTime:
-			if resource.endTime > endDateTime:
+			if resource.endTime >= endDateTime:
 				for reservation in reservations:
-					if reservation.startTime > startDateTime and reservation.endTime > startDateTime:
+					if reservation.startTime > startDateTime and reservation.startTime >= endDateTime:
 						flag = 'true'
 					else:
-						if startDateTime < reservation.startTime and endDateTime < reservation.startTime:
+						if startDateTime >= reservation.endTime and endDateTime > reservation.endTime:
 							flag = 'true'
 						else:
 							flag = 'false'
+			else :
+				flag = 'false'
 		else :
 			flag = 'false'
-
+		
+			
 		if flag == 'true':
 			addReservation = Reservation()
 			addReservation.resourceName = resource_name
