@@ -171,7 +171,7 @@
 
 				{% for reservation in reservations %}
 					{% if checkOwnerResources == "true" %} 
-						{% if getOwner != user.email() and getOwner == reservation.author.email %}
+						{% if getOwner == reservation.author.email %}
 							<div class="divRow" id = "rowdiv{{reservation.uuid}}">
 								<div class="divCell">{{reservation.uuid}}</div>
 
@@ -183,9 +183,7 @@
 									</div>
 									</form>
 									{% for resource in resources %}
-										repeat on resources
 										{% if reservation.resourceName == resource.resourceName %}
-										repeat ontags
 											{% for eachTag in resource.tags %}
 													<div class="divCell">
 													<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
@@ -201,7 +199,14 @@
 								<div class="divCell">{{reservation.resourceUUID}}</div>
 								<div class="divCell">{{reservation.startTime}}</div>
 								<div class="divCell">{{reservation.duration}}</div>
-								
+								{% if getOwner == user.email() %}
+									<form action="/" method="get">
+									<div class="divCell">
+									<input type="hidden" name="deleteReservation" value="{{reservation.uuid}}">
+									<input type="submit" value="Delete" >					
+									</div>
+									</form>
+								{% endif %}
 							</div>
 							<hr>
 							
@@ -252,6 +257,12 @@
 								<div class="divCell">{{reservation.resourceUUID}}</div>
 								<div class="divCell">{{reservation.startTime}}</div>
 								<div class="divCell">{{reservation.duration}}</div>
+								<form action="/" method="get">
+								<div class="divCell">
+								<input type="hidden" name="deleteReservation" value="{{reservation.uuid}}">
+								<input type="submit" value="Delete" >					
+								</div>
+								</form>
 								
 							</div>
 							<hr>
@@ -269,12 +280,7 @@
 
 
 					{% endif %}
-				<form action="/" method="get">
-					<div class="divCell">
-					<input type="hidden" name="deleteReservation" value="{{reservation.uuid}}">
-					<input type="submit" value="Delete" >					
-					</div>
-				</form>
+					
 
 				{% endfor %}
 								
@@ -340,7 +346,7 @@
 
 				{% for resource in resources %}
 					{% if checkOwnerResources == 'true' %} 
-						{% if getOwner != user.email() and getOwner == resource.author.email %}
+						{% if getOwner == resource.author.email %}
 							<div class="divRow">
 							<div class="divCell">
 								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
@@ -352,6 +358,15 @@
 							<div class="divCell">{{resource.author.email}}</div>
 							<div class="divCell">{{resource.startTime}}</div>
 							<div class="divCell">{{resource.endTime}}</div>
+								{% for eachTag in resource.tags %}
+									<div class="divCell">
+									<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+										<input type="hidden" name="get_Tag" value="{{eachTag}}">
+										<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+									</form>
+									</div>
+								{% endfor %}
+								
 							
 							</div>
 							<hr>

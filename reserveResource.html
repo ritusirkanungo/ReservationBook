@@ -179,6 +179,7 @@
 					<div  class="divCell">Resource UUID</div>
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">Duration</div>
+					<div  class="divCell"></div>
 					
 				 </div>
 
@@ -198,6 +199,15 @@
 						<div class="divCell">{{reservation.resourceUUID}}</div>
 						<div class="divCell">{{reservation.startTime}}</div>
 						<div class="divCell">{{reservation.duration}}</div>
+						{% if reservation.author.identity == user.user_id() %}
+							<form action="/" method="get">
+								<div class="divCell">
+								<input type="hidden" name="deleteReservation" value="{{reservation.uuid}}">
+								<input type="submit" value="Delete" >					
+								</div>
+							</form>
+
+						{% endif %}
 						
 					</div>
 					<hr>
