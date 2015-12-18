@@ -36,6 +36,7 @@ class Resource(ndb.Model):
 	endTime=ndb.DateTimeProperty(auto_now_add=False)
 	author=ndb.StructuredProperty(Author)
 	date=ndb.DateTimeProperty(auto_now_add=False)
+	tags=ndb.StringProperty(repeated=True)
 	
 class Reservation(ndb.Model):
 	author=ndb.StructuredProperty(Author)
@@ -55,9 +56,20 @@ class MainPage(webapp2.RequestHandler):
 		reservation_query=Reservation.query()
 		reservations = reservation_query.fetch()
 		
-		
-
 		menu_name = 'see_your'
+
+
+		deleteReservationID = ''
+		deleteReservationID1 = self.request.get('deleteReservation') 
+		if deleteReservationID1 != '':
+			deleteReservationID = deleteReservationID1
+			reservation_query_delete = Reservation.query(Reservation.uuid == deleteReservationID)
+			reservation_delete_key = reservation_query_delete.fetch()
+			reservation_delete_key[0].key.delete()
+			sleep(2)
+			query_params = {'menu_name': menu_name}
+			self.redirect('/?'+urllib.urlencode(query_params))
+			
 		menu_name1 = self.request.get('menu_name')
 		
 		checkOwnerResources = 'false'
@@ -149,12 +161,18 @@ class AddCreatedResource(webapp2.RequestHandler):
 		endDateTime = datetime.strptime(getEndDateTime, '%m/%d/%Y %I:%M %p')
 		addResource.endTime = endDateTime
 		
+		getTags = self.request.get('resource_Tag')
+		getTagsList = getTags.split(';')
+		addResource.tags = getTagsList
+		
 		if users.get_current_user():
 			addResource.author = Author(
 						identity=users.get_current_user().user_id(),
 						email=users.get_current_user().email())
 		
 		addResource.uuid = str(uuid.uuid4())
+		
+		
 		
 		addResource.put()
 		sleep(2)
@@ -270,11 +288,32 @@ class AddReservation(webapp2.RequestHandler):
 			query_params={'menu_name':menu_name,'flag':flag,'resource_uuid':resource_uuid}
 			self.redirect('/reserveResource?'+urllib.urlencode(query_params))		
 
+class ListTagResources(webapp2.RequestHandler):
+	def get(self):
+		get_Tag = self.request.get('get_Tag')
+		resource_query = Resource.query(Resource.tags == get_Tag)
+		resources = resource_query.fetch()
+			
+		user=users.get_current_user()
 		
+		if user:
+			url=users.create_logout_url(self.request.uri)
+			url_linktext='Logout'
+			
+			template_values = {
+				'resources':resources,
+				'user':user,
+			}
+			template = JINJA_ENVIRONMENT.get_template('seeTaggedResource.html')
+			self.response.write(template.render(template_values))
+
+		else:
+			self.redirect(users.create_login_url(self.request.uri))
 	
 app = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/sign', AddCreatedResource),
 	('/reserveResource', ReserveResource),
 	('/addReservation', AddReservation),
+	('/listTagResources', ListTagResources),
 ],debug=True)

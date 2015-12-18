@@ -324,6 +324,7 @@
 					<div>
 					{{resource.startTime}}
 					{{resource.endTime}}
+					{{resource.tags}}
 					
 					Select Date:
 					<select name="Month" id= "Month">
@@ -391,10 +392,8 @@
 					</div>
 					<br>
 					<div>
-					Select Tags:
-					<select name="setTags">
-					  <option value="">fhdsk</option>					
-					</select>
+						Set Tags (; separated):
+						<input id="resourceTags" name="resource_Tag" />
 					</div>
 					<br>
 					<script>
@@ -445,7 +444,11 @@
 					document.getElementById("endHours").value = endHours;
 					document.getElementById("endMins").value = endMins;
 					document.getElementById("endMeridian").value = endMeridian;
-					
+					var str = ""
+					{% for eachtag in resource.tags %}
+						str = str + "{{eachtag}}" + ';' ;
+					{% endfor %}
+					document.getElementById("resourceTags").value = str;
 					
 					</script>
 					<input type="submit" value="Submit">

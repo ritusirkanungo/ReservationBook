@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+  <link type="text/css" rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+	
+  </head>
+	<body>
+		<div class="container">
+			<h3>Selct </h3>
+			<ul class="nav nav-pills">
+				<li><a href="/">Go Home</a></li>
+			</ul>
+		<div>
+			Hello
+			{% if user %}
+			{{user.nickname()}}
+			{% endif %}
+		</div>
+			active
+				<div class="divTable">
+				 <div class="headRow">
+					<div class="divCell" align="center">Resource Name</div>
+					<div  class="divCell">Resource Owner</div>
+					<div  class="divCell">Start Time</div>
+					<div  class="divCell">End Time</div>
+					<div  class="divCell">Tags</div>
+					
+				 </div>
+
+				{% for resource in resources %}
+					<div class="divRow">
+								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
+							<div class="divCell">
+									<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
+								
+							</div>
+								</form>
+								
+						<div class="divCell">
+									<a href="/?getOwner={{resource.author.email}}">{{resource.author.email}}</a>
+						</div>
+						<div class="divCell">{{resource.startTime}}</div>
+						<div class="divCell">{{resource.endTime}}</div>
+						<div class="divCell">{{resource.date}}</div>
+						{% for eachTag in resource.tags %}
+							<div class="divCell">
+							<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+								<input type="hidden" name="get_Tag" value="{{eachTag}}">
+								<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+							</form>
+							</div>
+						{% endfor %}
+					</div>
+					<hr>
+				{% endfor %}
+
+			</div>
+
+	
+		<hr>
+		
+		<a href="{{url|safe}}">{{ url_linktext }}</a>
+
+
+			
+		</div>		
+	</body>
+	
+</html>
+{% endautoescape %}

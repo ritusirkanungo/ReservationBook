@@ -160,18 +160,18 @@
 				 <div class="headRow">
 					<div class="divCell" align="center">Reservation UUID</div>
 					<div  class="divCell">Resource Name</div>
+					<div  class="divCell">Resource Tags</div>
 					<div  class="divCell">Resource UUID</div>
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">Duration</div>
+					<div  class="divCell">Delete</div>
+					
 					
 				 </div>
 
 				{% for reservation in reservations %}
-					{{checkOwnerResources}}
 					{% if checkOwnerResources == "true" %} 
-						repeat {{getOwner}}
 						{% if getOwner != user.email() and getOwner == reservation.author.email %}
-							repeat2 
 							<div class="divRow" id = "rowdiv{{reservation.uuid}}">
 								<div class="divCell">{{reservation.uuid}}</div>
 
@@ -181,7 +181,23 @@
 											<a href="javascript:void(0)" onclick="document.getElementById('myform{{reservation.resourceName}}').submit()">{{reservation.resourceName}}</a>
 										
 									</div>
-										</form>
+									</form>
+									{% for resource in resources %}
+										repeat on resources
+										{% if reservation.resourceName == resource.resourceName %}
+										repeat ontags
+											{% for eachTag in resource.tags %}
+													<div class="divCell">
+													<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+														<input type="hidden" name="get_Tag" value="{{eachTag}}">
+														<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+													</form>
+													</div>
+											{% endfor %}
+										{% endif %}
+
+									{% endfor %}
+									
 								<div class="divCell">{{reservation.resourceUUID}}</div>
 								<div class="divCell">{{reservation.startTime}}</div>
 								<div class="divCell">{{reservation.duration}}</div>
@@ -214,6 +230,25 @@
 										
 									</div>
 										</form>
+										
+									{% for resource in resources %}	
+										{% if reservation.resourceName == resource.resourceName %}
+											{% for eachTag in resource.tags %}
+													<div class="divCell">
+													<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+														<input type="hidden" name="get_Tag" value="{{eachTag}}">
+														<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+													</form>
+													</div>
+											{% endfor %}
+										{% endif %}
+
+									{% endfor %}
+
+										
+										
+										
+										
 								<div class="divCell">{{reservation.resourceUUID}}</div>
 								<div class="divCell">{{reservation.startTime}}</div>
 								<div class="divCell">{{reservation.duration}}</div>
@@ -234,8 +269,15 @@
 
 
 					{% endif %}
+				<form action="/" method="get">
+					<div class="divCell">
+					<input type="hidden" name="deleteReservation" value="{{reservation.uuid}}">
+					<input type="submit" value="Delete" >					
+					</div>
+				</form>
+
 				{% endfor %}
-				
+								
 
 			</div>
 			
@@ -249,6 +291,7 @@
 					<div  class="divCell">Resource Owner</div>
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">End Time</div>
+					<div  class="divCell">Tags</div>
 					
 				 </div>
 
@@ -268,6 +311,14 @@
 						<div class="divCell">{{resource.startTime}}</div>
 						<div class="divCell">{{resource.endTime}}</div>
 						<div class="divCell">{{resource.date}}</div>
+						{% for eachTag in resource.tags %}
+							<div class="divCell">
+							<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+								<input type="hidden" name="get_Tag" value="{{eachTag}}">
+								<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+							</form>
+							</div>
+						{% endfor %}
 					</div>
 					<hr>
 				{% endfor %}
@@ -283,6 +334,7 @@
 					<div  class="divCell">Resource Owner</div>
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">End Time</div>
+					<div  class="divCell">Tags</div>
 					
 				 </div>
 
@@ -318,6 +370,14 @@
 								<div class="divCell">{{resource.author.email}}</div>
 								<div class="divCell">{{resource.startTime}}</div>
 								<div class="divCell">{{resource.endTime}}</div>
+								{% for eachTag in resource.tags %}
+									<div class="divCell">
+									<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+										<input type="hidden" name="get_Tag" value="{{eachTag}}">
+										<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+									</form>
+									</div>
+								{% endfor %}
 								
 							</div>
 							<hr>
@@ -407,10 +467,9 @@
 					</div>
 					<br>
 					<div>
-					Select Tags:
-					<select name="setTags">
-					  <option value="">fhdsk</option>					
-					</select>
+					Set Tags (; separated):
+						<input id="resourceTags" name="resource_Tag" />
+										
 					</div>
 					<br>
 					<input type="submit" value="Submit">
