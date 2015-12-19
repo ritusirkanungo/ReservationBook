@@ -7,7 +7,7 @@ body {
     {
         display:  table;
         width:auto;
-        background-color:#eee;
+        background-color:#337ab7;
         border:1px solid  #666666;
         border-spacing:5px;/*cellspacing:poor IE support for  this*/
        /* border-collapse:separate;*/
@@ -23,6 +23,38 @@ body {
     {
         float:left;/*fix for  buggy browsers*/
         display:table-column;
-        width:200px;
-        background-color:#ccc;
+        width:140px;
+        background-color:white;
+		border: 1px solid #337ab7;
+		height: 40px;
+		text-align:center;
+			color: #337ab7
+
     }
+	.headRow {
+		margin-bottom:5%;
+	}
+
+.second-heading {
+    margin-top: 2%;
+    margin-bottom: 2%;
+
+}
+.title-heading {
+	float: left;
+    margin-right: 15%;
+}	
+.tag-header {
+	float: left;
+    margin-left: 5%;
+}
+.tag-style {
+	float:left;
+}
+.rss-style {
+	float:left;
+	margin-right:8%;
+}
+.rss-substyle {
+	float:left;
+}

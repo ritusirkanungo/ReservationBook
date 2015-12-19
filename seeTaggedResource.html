@@ -8,17 +8,29 @@
   </head>
 	<body>
 		<div class="container">
-			<h3>Selct </h3>
+			<h3>Reservation System </h3>
+			<hr>
 			<ul class="nav nav-pills">
 				<li><a href="/">Go Home</a></li>
+				<li><a href="{{url|safe}}">{{ url_linktext }}</a></li>
+
 			</ul>
-		<div>
+		<div class="second-heading">
+			<div class="title-heading">
 			Hello
 			{% if user %}
 			{{user.nickname()}}
 			{% endif %}
+			</div>	
+			<div>
+			<form action="/searchResource" method="get">
+			Search Resources By Resource Name: 
+			<input type="text" name="searchResource"/>
+			<input type="submit" value="Submit">
+			</form>
+			</div>			
 		</div>
-			active
+		<hr>
 				<div class="divTable">
 				 <div class="headRow">
 					<div class="divCell" align="center">Resource Name</div>
@@ -27,6 +39,7 @@
 					<div  class="divCell">End Time</div>
 					<div  class="divCell">Tags</div>
 					<div  class="divCell">RSS</div>
+					<div  class="divCell">Number of Reservations</div>
 					
 				 </div>
 
@@ -45,24 +58,26 @@
 						</div>
 						<div class="divCell">{{resource.startTime}}</div>
 						<div class="divCell">{{resource.endTime}}</div>
-						<div class="divCell">{{resource.date}}</div>
+						<div class="divCell">
+						
 						{% for eachTag in resource.tags %}
-							<div class="divCell">
-							<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
+							<form id="tagForm{{eachTag}}" action="/listTagResources" method="get" class="tag-header">
 								<input type="hidden" name="get_Tag" value="{{eachTag}}">
 								<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
 							</form>
-							</div>
 						{% endfor %}
+						</div>
+						
 						<div class="divCell">
 							<form id="RSSForm{{resource.uuid}}" action="/resourceRSS" method="get">
 								<input type="hidden" name="get_ResourceID" value="{{resource.uuid}}">
 								<a href="javascript:void(0)" onclick="document.getElementById('RSSForm{{resource.uuid}}').submit()">RSS</a>			
 							</form>
 						</div>
+						<div class="divCell">{{resource.numReservations}}</div>
+						
 
 					</div>
-					<hr>
 				{% endfor %}
 
 			</div>
@@ -70,7 +85,6 @@
 	
 		<hr>
 		
-		<a href="{{url|safe}}">{{ url_linktext }}</a>
 
 
 			
