@@ -20,13 +20,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 	loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
 	extensions=['jinja2.ext.autoescape'],
 	autoescape=True)
-DEFAULT_RESERVATIONBOOK_NAME = 'ROOT'
-def reservationbook_key(reservationbook_name=DEFAULT_RESERVATIONBOOK_NAME):
-    """Constructs a Datastore key for a AddCreatedResource entity.
-
-    We use reservationbook_name as the key.
-    """
-    return ndb.Key('AddCreatedResource', reservationbook_name)
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
