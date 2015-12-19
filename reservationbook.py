@@ -4,9 +4,16 @@ import os
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.api import mail
+from google.appengine.api import images
 from datetime import datetime,time,date,timedelta
 from time import sleep
+from xml.etree.ElementTree import Element, SubElement, Comment
+from xml.etree import ElementTree
+from xml.dom import minidom
+from email import utils
 
+import time
 import webapp2
 import jinja2
 import uuid
@@ -23,6 +30,15 @@ def reservationbook_key(reservationbook_name=DEFAULT_RESERVATIONBOOK_NAME):
     """
     return ndb.Key('AddCreatedResource', reservationbook_name)
 
+def prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+    """
+    rough_string = ElementTree.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
+	
+	
 class Author(ndb.Model):
 	"""Sub model to represent an author"""
 	identity=ndb.StringProperty(indexed=False)
@@ -37,6 +53,8 @@ class Resource(ndb.Model):
 	author=ndb.StructuredProperty(Author)
 	date=ndb.DateTimeProperty(auto_now_add=False)
 	tags=ndb.StringProperty(repeated=True)
+	pubDate=ndb.DateTimeProperty(auto_now_add=True)
+	avatar = ndb.BlobProperty()
 	
 class Reservation(ndb.Model):
 	author=ndb.StructuredProperty(Author)
@@ -46,12 +64,14 @@ class Reservation(ndb.Model):
 	startTime = ndb.DateTimeProperty(auto_now_add=False)
 	endTime = ndb.DateTimeProperty(auto_now_add=False)	
 	duration = ndb.StringProperty(indexed=False)
+	pubDate = ndb.DateTimeProperty(auto_now_add=True)
 	
 	
 class MainPage(webapp2.RequestHandler):
 	def get(self):
 		resource_query=Resource.query().order(-Resource.date)
 		resources=resource_query.fetch()
+		
 		
 		reservation_query=Reservation.query()
 		reservations = reservation_query.fetch()
@@ -172,7 +192,9 @@ class AddCreatedResource(webapp2.RequestHandler):
 		
 		addResource.uuid = str(uuid.uuid4())
 		
+		avatar = self.request.get('img')
 		
+		addResource.avatar = str(avatar)
 		
 		addResource.put()
 		sleep(2)
@@ -226,6 +248,7 @@ class AddReservation(webapp2.RequestHandler):
 		resource = resource_query.fetch()
 		resource = resource[0]
 		resource.date= datetime.now()
+		
 		resource.put()
 		sleep(1)
 		
@@ -280,6 +303,9 @@ class AddReservation(webapp2.RequestHandler):
 			addReservation.uuid = str(uuid.uuid4())
 			
 			addReservation.put()
+			
+			
+			
 			sleep(2)
 			query_params={'menu_name':menu_name}
 			self.redirect('/?'+urllib.urlencode(query_params))		
@@ -309,11 +335,27 @@ class ListTagResources(webapp2.RequestHandler):
 
 		else:
 			self.redirect(users.create_login_url(self.request.uri))
-	
+
+
+class Image:
+	def get(self):
+		resource_key = ndb.Key(urlsafe=self.request.get('img_id'))
+		resource = resource_key.get()
+		menu_name = 'see_all'
+		if resource.avatar:
+			query_params={'menu_name':menu_name,'resource_avatar':resource.avatar}
+			self.redirect('/?'+urllib.urlencode(query_params))				
+		else:
+			menu_name = 'see_your'
+			query_params={'menu_name':menu_name}
+			self.redirect('/?'+urllib.urlencode(query_params))				
+		
+		
 app = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/sign', AddCreatedResource),
 	('/reserveResource', ReserveResource),
 	('/addReservation', AddReservation),
 	('/listTagResources', ListTagResources),
+	('/img', Image),
 ],debug=True)
