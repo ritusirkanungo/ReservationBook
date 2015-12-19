@@ -4,8 +4,6 @@ import os
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
-from google.appengine.api import mail
-from google.appengine.api import images
 from datetime import datetime,time,date,timedelta
 from time import sleep
 from xml.etree.ElementTree import Element, SubElement, Comment
@@ -22,22 +20,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 	loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
 	extensions=['jinja2.ext.autoescape'],
 	autoescape=True)
-DEFAULT_RESERVATIONBOOK_NAME = 'ROOT'
-def reservationbook_key(reservationbook_name=DEFAULT_RESERVATIONBOOK_NAME):
-    """Constructs a Datastore key for a AddCreatedResource entity.
 
-    We use reservationbook_name as the key.
-    """
-    return ndb.Key('AddCreatedResource', reservationbook_name)
-
-def prettify(elem):
-    """Return a pretty-printed XML string for the Element.
-    """
-    rough_string = ElementTree.tostring(elem, 'utf-8')
-    reparsed = minidom.parseString(rough_string)
-    return reparsed.toprettyxml(indent="  ")
-
-	
 	
 class Author(ndb.Model):
 	"""Sub model to represent an author"""
@@ -47,14 +30,14 @@ class Author(ndb.Model):
 class Resource(ndb.Model):
 	"""Main model to represent individual resourcebook entry"""
 	uuid = ndb.StringProperty(indexed=True)
-	resourceName= ndb.StringProperty(indexed=False)
+	resourceName= ndb.StringProperty(indexed=True)
 	startTime=ndb.DateTimeProperty(auto_now_add=False)
 	endTime=ndb.DateTimeProperty(auto_now_add=False)
 	author=ndb.StructuredProperty(Author)
 	date=ndb.DateTimeProperty(auto_now_add=False)
 	tags=ndb.StringProperty(repeated=True)
 	pubDate=ndb.DateTimeProperty(auto_now_add=True)
-	avatar = ndb.BlobProperty()
+	numReservations = ndb.IntegerProperty(indexed=False)
 	
 class Reservation(ndb.Model):
 	author=ndb.StructuredProperty(Author)
@@ -72,7 +55,6 @@ class MainPage(webapp2.RequestHandler):
 		resource_query=Resource.query().order(-Resource.date)
 		resources=resource_query.fetch()
 		
-		
 		reservation_query=Reservation.query()
 		reservations = reservation_query.fetch()
 		
@@ -85,6 +67,9 @@ class MainPage(webapp2.RequestHandler):
 			deleteReservationID = deleteReservationID1
 			reservation_query_delete = Reservation.query(Reservation.uuid == deleteReservationID)
 			reservation_delete_key = reservation_query_delete.fetch()
+			resource_query = Resource.query(Resource.uuid == reservation_delete_key[0].resourceUUID)
+			resource = resource_query.fetch()
+			resource[0].numReservations = resource[0].numReservations - 1
 			reservation_delete_key[0].key.delete()
 			sleep(2)
 			query_params = {'menu_name': menu_name}
@@ -138,22 +123,9 @@ class MainPage(webapp2.RequestHandler):
 class AddCreatedResource(webapp2.RequestHandler):
 	def post(self):
 		old_resource_uuid = self.request.get('resource_uuid');
-		if old_resource_uuid!="":
-			resource_query = Resource.query(Resource.uuid == old_resource_uuid)
-			resource_temp_key = resource_query.fetch()
-			resource_temp_key[0].key.delete()
-		
-		menu_name = 'see_all'
-		
 		resource_name = self.request.get('resource_name')
 		user = users.get_current_user().user_id()
 		reservationbook_name = resource_name + user
-		
-		addResource = Resource()
-		
-		addResource.resourceName = resource_name
-		
-		
 		currDay =datetime.now().day
 		currMonth = datetime.now().month
 		currYear = datetime.now().year
@@ -170,8 +142,6 @@ class AddCreatedResource(webapp2.RequestHandler):
 		getStartTime = getStartHours+':'+getStartMins+' '+getStartMeridian
 		getStartDateTime = getDate+' '+getStartTime
 		startDateTime = datetime.strptime(getStartDateTime, '%m/%d/%Y %I:%M %p')
-		addResource.startTime = startDateTime
-
 		
 		getEndHours = self.request.get('endHours')
 		getEndMins = self.request.get('endMins')
@@ -179,24 +149,39 @@ class AddCreatedResource(webapp2.RequestHandler):
 		getEndTime = getEndHours+':'+getEndMins+' '+getEndMeridian		
 		getEndDateTime = getDate+' '+getEndTime
 		endDateTime = datetime.strptime(getEndDateTime, '%m/%d/%Y %I:%M %p')
-		addResource.endTime = endDateTime
 		
 		getTags = self.request.get('resource_Tag')
 		getTagsList = getTags.split(';')
-		addResource.tags = getTagsList
 		
-		if users.get_current_user():
-			addResource.author = Author(
-						identity=users.get_current_user().user_id(),
-						email=users.get_current_user().email())
 		
-		addResource.uuid = str(uuid.uuid4())
 		
-		avatar = self.request.get('img')
+		if old_resource_uuid!="":
+			resource_query = Resource.query(Resource.uuid == old_resource_uuid)
+			resource_temp_key = resource_query.fetch()
+			resource_temp_key[0].resourceName = resource_name
+			resource_temp_key[0].startTime = startDateTime
+			resource_temp_key[0].endTime = endDateTime
+			resource_temp_key[0].tags = getTagsList
+			resource_temp_key[0].put()
 		
-		addResource.avatar = str(avatar)
+		else:
+			addResource = Resource()
+			addResource.resourceName = resource_name
+			addResource.startTime = startDateTime
+			addResource.endTime = endDateTime
+			addResource.tags = getTagsList
+			if users.get_current_user():
+				addResource.author = Author(
+									identity=users.get_current_user().user_id(),
+									email=users.get_current_user().email())
 		
-		addResource.put()
+			addResource.uuid = str(uuid.uuid4())
+			addResource.numReservations = 0
+			addResource.put()
+		
+		menu_name = 'see_all'
+		
+		
 		sleep(2)
 
 		query_params={'menu_name':menu_name}
@@ -221,18 +206,28 @@ class ReserveResource(webapp2.RequestHandler):
 		
 		user = users.get_current_user()
 		currDateTime = datetime
-		template_values={
-			'user': user,
-			'resource':resource[0],	
-			'menu_name': menu_name,
-			'resource_date': resource_date,
-			'reservations': reservations,
-			'flag': flag,
-			'currDateTime': 'currDateTime',
-		}
-		template = JINJA_ENVIRONMENT.get_template('reserveResource.html')
-		self.response.write(template.render(template_values))
-	
+		
+		if user:
+			if user:
+				url=users.create_logout_url(self.request.uri)
+				url_linktext='Logout'
+
+			template_values={
+				'user': user,
+				'resource':resource[0],	
+				'url':url,
+				'url_linktext': url_linktext,
+				'menu_name': menu_name,
+				'resource_date': resource_date,
+				'reservations': reservations,
+				'flag': flag,
+				'currDateTime': 'currDateTime',
+			}
+			template = JINJA_ENVIRONMENT.get_template('reserveResource.html')
+			self.response.write(template.render(template_values))
+		else:
+			self.redirect(users.create_login_url(self.request.uri))		
+
 class AddReservation(webapp2.RequestHandler):
 	def post(self):
 		
@@ -248,6 +243,7 @@ class AddReservation(webapp2.RequestHandler):
 		resource = resource_query.fetch()
 		resource = resource[0]
 		resource.date= datetime.now()
+		resource.numReservations =resource.numReservations + 1
 		
 		resource.put()
 		sleep(1)
@@ -303,9 +299,6 @@ class AddReservation(webapp2.RequestHandler):
 			addReservation.uuid = str(uuid.uuid4())
 			
 			addReservation.put()
-			
-			
-			
 			sleep(2)
 			query_params={'menu_name':menu_name}
 			self.redirect('/?'+urllib.urlencode(query_params))		
@@ -329,6 +322,8 @@ class ListTagResources(webapp2.RequestHandler):
 			template_values = {
 				'resources':resources,
 				'user':user,
+				'url':url,
+				'url_linktext':url_linktext,
 			}
 			template = JINJA_ENVIRONMENT.get_template('seeTaggedResource.html')
 			self.response.write(template.render(template_values))
@@ -337,19 +332,27 @@ class ListTagResources(webapp2.RequestHandler):
 			self.redirect(users.create_login_url(self.request.uri))
 
 
-class Image:
+class SearchResource(webapp2.RequestHandler):
 	def get(self):
-		resource_key = ndb.Key(urlsafe=self.request.get('img_id'))
-		resource = resource_key.get()
-		menu_name = 'see_all'
-		if resource.avatar:
-			query_params={'menu_name':menu_name,'resource_avatar':resource.avatar}
-			self.redirect('/?'+urllib.urlencode(query_params))				
-		else:
-			menu_name = 'see_your'
-			query_params={'menu_name':menu_name}
-			self.redirect('/?'+urllib.urlencode(query_params))				
-		
+			resource_name = self.request.get('searchResource')
+			resource_query = Resource.query(Resource.resourceName == resource_name)
+			resources = resource_query.fetch()
+			user = users.get_current_user()
+			if user:
+				url=users.create_logout_url(self.request.uri)
+				url_linktext='Logout'
+			
+				template_values={
+						'user':user,
+						'resources':resources,
+						'url':url,
+						'url_linktext':url_linktext
+				}
+				template = JINJA_ENVIRONMENT.get_template('searchResource.html')
+				self.response.write(template.render(template_values))
+			else:
+				self.redirect(users.create_login_url(self.request.uri))
+	
 		
 app = webapp2.WSGIApplication([
 	('/', MainPage),
@@ -357,5 +360,6 @@ app = webapp2.WSGIApplication([
 	('/reserveResource', ReserveResource),
 	('/addReservation', AddReservation),
 	('/listTagResources', ListTagResources),
-	('/img', Image),
+	('/searchResource', SearchResource),
+
 ],debug=True)

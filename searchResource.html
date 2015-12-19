@@ -13,8 +13,8 @@
 			<ul class="nav nav-pills">
 				<li><a href="/">Go Home</a></li>
 				<li><a href="{{url|safe}}">{{ url_linktext }}</a></li>
-
 			</ul>
+		
 		<div class="second-heading">
 			<div class="title-heading">
 			Hello
@@ -31,6 +31,9 @@
 			</div>			
 		</div>
 		<hr>
+			List of All Resources searched by resource name:
+			<br>
+			<br>
 				<div class="divTable">
 				 <div class="headRow">
 					<div class="divCell" align="center">Resource Name</div>
@@ -41,37 +44,36 @@
 					<div  class="divCell">Number of Reservations</div>
 					
 				 </div>
-
-				{% for resource in resources %}
-					<div class="divRow">
-								<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
+					{% for resource in resources %}
+						<div class="divRow">
+									<form id='myform{{resource.resourceName}}' action="/reserveResource" method="get">
+								<div class="divCell">
+										<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
+										<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
+									
+								</div>
+									</form>
+									
 							<div class="divCell">
-									<input type="hidden" name="resource_uuid" value="{{resource.uuid}}">
-									<a href="javascript:void(0)" onclick="document.getElementById('myform{{resource.resourceName}}').submit()">{{resource.resourceName}}</a>
-								
+										<a href="/?getOwner={{resource.author.email}}">{{resource.author.email}}</a>
 							</div>
-								</form>
+							<div class="divCell">{{resource.startTime}}</div>
+							<div class="divCell">{{resource.endTime}}</div>
+							<div class="divCell">
 								
-						<div class="divCell">
-									<a href="/?getOwner={{resource.author.email}}">{{resource.author.email}}</a>
-						</div>
-						<div class="divCell">{{resource.startTime}}</div>
-						<div class="divCell">{{resource.endTime}}</div>
-						<div class="divCell">
-						
-						{% for eachTag in resource.tags %}
-							<form id="tagForm{{eachTag}}" action="/listTagResources" method="get" class="tag-header">
-								<input type="hidden" name="get_Tag" value="{{eachTag}}">
-								<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
-							</form>
-						{% endfor %}
-						</div>
-						
-						<div class="divCell">{{resource.numReservations}}</div>
+							{% for eachTag in resource.tags %}
+								<form id="tagForm{{eachTag}}" action="/listTagResources" method="get" class="tag-header">
+									<input type="hidden" name="get_Tag" value="{{eachTag}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('tagForm{{eachTag}}').submit()">{{eachTag}}</a>
+								</form>
+							{% endfor %}
+								</div>
+							
+							<div class="divCell">{{resource.numReservations}}</div>
 						
 
-					</div>
-				{% endfor %}
+						</div>
+					{% endfor %}
 
 			</div>
 
