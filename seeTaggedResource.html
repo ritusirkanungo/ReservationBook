@@ -26,6 +26,7 @@
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">End Time</div>
 					<div  class="divCell">Tags</div>
+					<div  class="divCell">RSS</div>
 					
 				 </div>
 
@@ -53,6 +54,13 @@
 							</form>
 							</div>
 						{% endfor %}
+						<div class="divCell">
+							<form id="RSSForm{{resource.uuid}}" action="/resourceRSS" method="get">
+								<input type="hidden" name="get_ResourceID" value="{{resource.uuid}}">
+								<a href="javascript:void(0)" onclick="document.getElementById('RSSForm{{resource.uuid}}').submit()">RSS</a>			
+							</form>
+						</div>
+
 					</div>
 					<hr>
 				{% endfor %}

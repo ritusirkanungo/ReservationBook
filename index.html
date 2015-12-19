@@ -20,12 +20,15 @@
 		var getsMins = document.getElementById("startMins").value;
 		
 		var sMeridian = document.getElementById("startMeridian").value;
-		var intsHours = parseInt(getsHours);
+		var intsHours = 0;
+		intsHours = parseInt(getsHours);
 		
 		if(sMeridian == 'PM'){
 		console.log(intsHours);
+		if(intshours!=12){
 		intsHours = intsHours + 12;
 		getsHours = intsHours;
+		}
 		}
 		
 		if(getsHours.length == 1){
@@ -39,8 +42,10 @@
 		var eMeridian = document.getElementById("endMeridian").value;
 		var inteHours = parseInt(geteHours);
 		if(eMeridian == 'PM'){
+		if(intehours){
 		inteHours = inteHours + 12;
 		geteHours = inteHours;
+		}
 		}
 		if(geteHours.length == 1){
 		geteHours = '0'+geteHours;
@@ -298,6 +303,9 @@
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">End Time</div>
 					<div  class="divCell">Tags</div>
+					<div  class="divCell">RSS Link</div>
+					<div  class="divCell">Images</div>
+					
 					
 				 </div>
 
@@ -325,6 +333,19 @@
 							</form>
 							</div>
 						{% endfor %}
+						<div class="divCell">
+							<form id="RSSForm{{resource.uuid}}" action="/resourceRSS" method="get">
+								<input type="hidden" name="get_ResourceID" value="{{resource.uuid}}">
+								<a href="javascript:void(0)" onclick="document.getElementById('RSSForm{{resource.uuid}}').submit()">RSS</a>			
+							</form>
+						</div>
+						<div class="divCell">
+						<form enctype="multipart/form-data">
+							<img src = "/img?img_id={{resource.key.urlsafe()}}">{{resource.avatar}}</img>
+						</form>
+						</div>
+						
+						
 					</div>
 					<hr>
 				{% endfor %}
@@ -341,6 +362,7 @@
 					<div  class="divCell">Start Time</div>
 					<div  class="divCell">End Time</div>
 					<div  class="divCell">Tags</div>
+					<div  class="divCell">RSS Link</div>
 					
 				 </div>
 
@@ -358,6 +380,7 @@
 							<div class="divCell">{{resource.author.email}}</div>
 							<div class="divCell">{{resource.startTime}}</div>
 							<div class="divCell">{{resource.endTime}}</div>
+							
 								{% for eachTag in resource.tags %}
 									<div class="divCell">
 									<form id="tagForm{{eachTag}}" action="/listTagResources" method="get">
@@ -366,6 +389,13 @@
 									</form>
 									</div>
 								{% endfor %}
+							<div class="divCell">
+							<form id="RSSForm{{resource.uuid}}" action="/resourceRSS" method="get">
+								<input type="hidden" name="get_ResourceID" value="{{resource.uuid}}">
+								<a href="javascript:void(0)" onclick="document.getElementById('RSSForm{{resource.uuid}}').submit()">RSS</a>			
+							</form>
+							</div>
+
 								
 							
 							</div>
@@ -393,6 +423,14 @@
 									</form>
 									</div>
 								{% endfor %}
+								
+								<div class="divCell">
+								<form id="RSSForm{{resource.uuid}}" action="/resourceRSS" method="get">
+									<input type="hidden" name="get_ResourceID" value="{{resource.uuid}}">
+									<a href="javascript:void(0)" onclick="document.getElementById('RSSForm{{resource.uuid}}').submit()">RSS</a>			
+								</form>
+								</div>
+
 								
 							</div>
 							<hr>
@@ -486,6 +524,13 @@
 						<input id="resourceTags" name="resource_Tag" />
 										
 					</div>
+					
+					<div>
+					Avatar:
+						<input type="file" name="img"/>
+					
+					</div>
+					
 					<br>
 					<input type="submit" value="Submit">
 					
