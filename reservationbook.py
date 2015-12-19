@@ -372,13 +372,13 @@ class RSSResource(webapp2.RequestHandler):
 		resourcepubdate = resource[0].pubDate.timetuple()
 		pubtimestamp = time.mktime(resourcepubdate)
 
-		resourcelastdate = resource[0].date.timetuple()
-		lasttimestamp = time.mktime(resourcelastdate)
 		
 
 		if resource[0].date is None:
 			lastBuildDate.text = utils.formatdate(pubtimestamp)
 		else:
+			resourcelastdate = resource[0].date.timetuple()
+			lasttimestamp = time.mktime(resourcelastdate)
 			lastBuildDate.text = utils.formatdate(lasttimestamp)
 		
 		pubDate = SubElement(channel, 'pubDate')

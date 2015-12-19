@@ -435,7 +435,7 @@
 					</div>
 					<br>
 					<div>
-					Select Date:
+					Select Date(MM-DD-YYYY):
 					<select name="Month" id = "Month">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
@@ -456,7 +456,7 @@
 					<br>
 					<div>
 					<span>
-					Select Start Time:
+					Select Start Time(in hours and minutes):
 					<select name="startHours" id = "startHours">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
@@ -478,7 +478,7 @@
 					</span>
 				
 					<span>
-					Select End Time:
+					Select End Time(in hours and minutes):
 					<select name="endHours" id="endHours">
 					{% for num in range(1,13)%}
 					  <option value="{{ num }}">{{num}}</option>					
